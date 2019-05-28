@@ -55,7 +55,7 @@ def main(args):
         mean = torch.load('./statistics/cifar10_mean.pt')
         transform = torchvision.transforms.Compose(
         [torchvision.transforms.RandomHorizontalFlip(p=0.5),
-         torchvisitransforms.ToTensor()])
+         torchvision.transforms.ToTensor()])
         (full_dim, mid_dim, hidden) = (3 * 32 * 32, 2000, 4)
         trainset = torchvision.datasets.CIFAR10(root='~/torch/data/CIFAR10',
             train=True, download=True, transform=transform)
@@ -146,7 +146,7 @@ def main(args):
         'mid_dim': mid_dim, 
         'hidden': hidden, 
         'mask_config': mask_config}, 
-        './models/mnist/' + filename +'iter%d.tar' % total_iter)
+        './models/' +  dataset + '/' + filename +'iter%d.tar' % total_iter)
 
     print('Checkpoint Saved')
 
