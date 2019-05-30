@@ -92,7 +92,7 @@ class Scaling(nn.Module):
 """
 class NICE(nn.Module):
     def __init__(self, prior, coupling, 
-        in_out_dim, mid_dim, hidden, mask_config):
+                 in_out_dim, mid_dim, hidden, mask_config):
         """Initialize a NICE.
 
         Args:
