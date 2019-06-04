@@ -15,11 +15,24 @@ kMNISTInputDim = 784
 kMNISTInputSize = 28
 kMNISTNumExamples = 100
 
+
+def VisualizeWeights(wts):
+    plt.plot(wts)
+    plt.title("Sorted rescaling layer weights")
+    plt.xlabel("Order of magnitude of weight")
+    plt.ylabel("Value of weight")
+    plt.savefig("weights_scaling.png")
+
 def GetScaleMask(scales, ktop=100, reverse=False):
     print(ktop, reverse)
     if not reverse:
         # Pick the largest ktop Sdd (least important latent vars)
         idxs = torch.argsort(scales)[::1]
+        weights = scales
+        weights, _ = torch.sort(weights)
+        weights = weights.cpu().numpy()[0]
+        print(weights)
+        VisualizeWeights(weights)
     else:
         # Pick the smallest ktop Sdd (most important latent vars)
         idxs = torch.argsort(scales)

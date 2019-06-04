@@ -154,7 +154,7 @@ class NICE(nn.Module):
         log_ll = torch.sum(self.prior.log_prob(z), dim=1)
         return log_ll + log_det_J
 
-    def sample(self, size):
+    def sample(self, size, mask=None):
         """Generates samples.
 
         Args:
@@ -163,6 +163,8 @@ class NICE(nn.Module):
             samples from the data space X.
         """
         z = self.prior.sample((size, self.in_out_dim)).cuda()
+        if mask is not None:
+            z = torch.mul(z, mask)
         return self.g(z)
 
     def forward(self, x):

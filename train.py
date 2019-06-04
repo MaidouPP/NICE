@@ -3,6 +3,7 @@
 
 import argparse
 import torch, torchvision
+import matplotlib.pyplot as plt
 import numpy as np
 import nice, utils
 
@@ -88,6 +89,8 @@ def main(args):
     train = True
     running_loss = 0
 
+    log_likelihoods = []
+
     while train:
         for _, data in enumerate(trainloader, 1):
             flow.train()    # set to training mode
@@ -118,6 +121,7 @@ def main(args):
                     'loss = %.3f' % mean_loss, 
                     'bits/dim = %.3f' % bit_per_dim)
                 running_loss = 0.0
+                log_likelihoods.append(mean_loss)
 
                 flow.eval()        # set to inference mode
                 with torch.no_grad():
@@ -133,6 +137,11 @@ def main(args):
                     torchvision.utils.save_image(torchvision.utils.make_grid(samples),
                         './samples/' + filename +'iter%d.png' % total_iter)
 
+    plt.plot(log_likelihoods, 'r-')
+    plt.xlabel("thousand iterations")
+    plt.ylabel("negative average log likelihood /1000")
+    plt.title("Training loss")
+    plt.savefig("mnist_train.png")
     print('Finished training!')
 
     torch.save({

@@ -57,7 +57,7 @@ def PrepareMNISTData(dataset):
     ShowImagesInGrid(after, 10, 10, save_path="after.png")
     return m_val, x
 
-def Reconstruct(mask, mask_val, x, flow, iter=300, lr=0.001):
+def Reconstruct(mask, mask_val, x, flow, iters=300, lr=0.001, save_path=None):
     device = torch.device("cuda:0")
     x_mixed = np.where(mask==1, x, mask_val)
     i = 0
@@ -68,9 +68,8 @@ def Reconstruct(mask, mask_val, x, flow, iter=300, lr=0.001):
         x_mixed_var, 'mnist', zca=None, mean=mean).to(device)
     inputs = Variable(x_mixed_tensor, requires_grad=True)
     # inputs = Variable(torch.Tensor(x_mixed).cuda(), requires_grad=True)
-    print(inputs.data)
     lr_ = np.float64(lr)
-    while i < iter:
+    while i < iters:
         # print("iter: ", i)
         loss = flow(inputs).mean()
         loss.backward()
@@ -78,6 +77,9 @@ def Reconstruct(mask, mask_val, x, flow, iter=300, lr=0.001):
         # print(inputs.grad.data)
         inputs[mask!=1].data += inc[mask!=1]
         i += 1
+    if save_path is not None:
+        result = inputs.detach().reshape((-1, 1, kMNISTInputSize, kMNISTInputSize))
+        tv.utils.save_image(tv.utils.make_grid(result.cpu()), save_path+str(iters)+".png")
     return inputs.detach().cpu().numpy()
 
 def main(args):
@@ -95,12 +97,14 @@ def main(args):
                 mask_config=1).to(device)
 
     mask, x = PrepareMNISTData(trainset)
+    ShowImagesInGrid(x, 10, 10, save_path="original.png")
     flow.load_state_dict(torch.load(args.model_path)['model_state_dict'])
 
     mask_val = np.random.uniform(size=(kMNISTNumExamples, kMNISTInputDim))
     mask_val = np.multiply(mask_val, x)
-    result = Reconstruct(mask, mask_val, x, flow, iter=1000)
-    ShowImagesInGrid(result, 10, 10, save_path="reconstructed.png")
+    iters = args.iters
+    result = Reconstruct(mask, mask_val, x, flow, iters=iters, save_path="./inpainting/mnist_")
+    ShowImagesInGrid(result, 10, 10, save_path="reconstructed_"+ str(iters) + ".png")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('MNIST NICE PyTorch inpainting experiment.')
@@ -108,5 +112,9 @@ if __name__ == "__main__":
                         help='Saved model path.',
                         type=str,
                         default='./models/mnist/mnist_bs200_logistic_cp4_md1000_hd5_iter25000.tar')
+    parser.add_argument('--iters',
+                        help='Number of iterations.',
+                        type=int,
+                        default=300)
     args = parser.parse_args()
     main(args)
